@@ -65,6 +65,9 @@ bool PloopyAcceleration = false;
 bool PloopyNumlockScroll = false;
 int16_t PloopyNumlockScrollVDir = 1;
 bool DoScroll = false;
+int16_t scrollDamp = 10;
+int16_t scrollH = 0;
+int16_t scrollV = 0;
 
 // Trackball State
 bool is_scroll_clicked = false;
@@ -78,12 +81,12 @@ bool debug_encoder = false;
 __attribute__((weak)) void process_mouse_user(report_mouse_t* mouse_report, int16_t x, int16_t y) {
     if (DoScroll) {
         // Scroll is very sensitive if you use the default values.
-        // We can't divide it by anything to reduce the sensitivity, cause that would zero out small input values.
-        // Instead we simply want either a 0, 1, or -1 depending on the input value's sign.
-        x = (x > 0 ? 1 : (x < 0 ? -1 : 0));
-        y = PloopyNumlockScrollVDir * (y > 0 ? 1 : (y < 0 ? -1 : 0));
-        mouse_report->v = x;
-        mouse_report->v = y;
+        scrollH += x;
+        scrollV += y * PloopyNumlockScrollVDir;
+        mouse_report->h = scrollH / scrollDamp;
+        mouse_report->v = scrollV / scrollDamp;
+        scrollH -= mouse_report->h * scrollDamp;
+        scrollV -= mouse_report->v * scrollDamp;
         return;
     }
 
