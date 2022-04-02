@@ -62,6 +62,7 @@ uint16_t dpi_array[] = PLOOPY_DPI_OPTIONS;
 // Valid options are ACC_NONE, ACC_LINEAR, ACC_CUSTOM, ACC_QUADRATIC
 
 bool PloopyAcceleration = false;
+int16_t accelDamp = 2;
 bool PloopyNumlockScroll = false;
 int16_t PloopyNumlockScrollVDir = 1;
 bool DoScroll = false;
@@ -91,11 +92,8 @@ __attribute__((weak)) void process_mouse_user(report_mouse_t* mouse_report, int1
     }
 
     if (PloopyAcceleration) {
-        // Testing revealed the max reasonable x/y values were ~16.
-        // `x*x/16 + x` results in ~2x speed at the max value, while maintaining 1x speed at the minimum.
-        // But the x*x cancels the sign, so we need to negate it if the input value is negative.
-        x = (x > 0 ? x*x/16+x : -x*x/16+x);
-        y = (y > 0 ? y*y/16+y : -y*y/16+y);
+        x += x * abs(x) / accelDamp;
+        y += y * abs(y) / accelDamp;
     }
 
     mouse_report->x = x;
